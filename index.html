@@ -262,6 +262,16 @@
 
       .exam-row__empty { padding: 0.6rem 0.25rem; color: #8a97a8; font-size: 0.85rem; }
 
+      .badge-available {
+        display: inline-block;
+        background: rgba(30, 160, 90, 0.14);
+        color: #1a8a4c;
+        font-size: 0.78rem;
+        font-weight: 700;
+        border-radius: 999px;
+        padding: 0.1rem 0.6rem;
+      }
+
       .exam-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; }
       .exam-row { display: flex; align-items: center; justify-content: space-between; padding: 0.8rem 0.25rem; border-bottom: 1px solid rgba(16, 34, 59, 0.1); }
       .exam-row:last-child { border-bottom: none; }
@@ -512,16 +522,22 @@
           bySection.get(q.section).push(q);
         }
 
+        const isCountable = (exam) => !exam.file_name.toLowerCase().endsWith('.mp3');
+        const availabilityBadge = (count) =>
+          count > 0 ? ` <span class="badge-available">(${count} available)</span>` : '';
+
         let html = '';
         for (const [section, quarters] of bySection) {
           html += `<div class="glass-card folder-section"><h4 class="folder-section__title">${escapeHtml(section)}</h4>`;
           for (const q of quarters) {
             const examsForQuarter = data.filter((e) => e.level === q.code);
-            html += `<details class="folder"><summary>${escapeHtml(q.code)} – ${escapeHtml(q.topic)}</summary>`;
+            const quarterCount = examsForQuarter.filter(isCountable).length;
+            html += `<details class="folder"><summary>${escapeHtml(q.code)} – ${escapeHtml(q.topic)}${availabilityBadge(quarterCount)}</summary>`;
             if (q.hasTrack) {
               for (const track of ['GK', 'LK']) {
                 const trackExams = examsForQuarter.filter((e) => e.track === track);
-                html += `<details class="folder folder--nested"><summary>${track}</summary><ul class="exam-list">`;
+                const trackCount = trackExams.filter(isCountable).length;
+                html += `<details class="folder folder--nested"><summary>${track}${availabilityBadge(trackCount)}</summary><ul class="exam-list">`;
                 html += trackExams.length ? trackExams.map(examRowHtml).join('') : '<li class="exam-row__empty">No files yet.</li>';
                 html += `</ul></details>`;
               }
