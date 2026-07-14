@@ -181,7 +181,7 @@
       .app__video { z-index: -3; object-fit: cover; object-position: center; }
       .app__shade {
         z-index: -2;
-        background: linear-gradient(110deg, rgba(6, 30, 53, 0.6), rgba(6, 30, 53, 0.3) 57%, rgba(6, 30, 53, 0.5));
+        background: linear-gradient(110deg, rgba(6, 30, 53, 0.32), rgba(6, 30, 53, 0.12) 57%, rgba(6, 30, 53, 0.24));
       }
 
       .app__nav {
@@ -216,7 +216,7 @@
       .app__content {
         position: relative;
         z-index: 1;
-        max-width: 52rem;
+        max-width: 40rem;
         margin: 0 auto;
         padding: calc(clamp(0.8rem, 1.8vw, 1.5rem) * 2 + 4.5rem) 1.5rem 4rem;
       }
@@ -228,7 +228,7 @@
         box-shadow: 0 1.5rem 4rem rgba(6, 20, 40, 0.35);
       }
 
-      .upload-card { padding: 1.5rem; margin-bottom: 2rem; }
+      .upload-card { padding: 1.1rem 1.25rem; margin-bottom: 1.5rem; }
       .upload-card h3 { margin-top: 0; }
       .upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; margin-bottom: 1rem; }
       .upload-grid label { font-size: 0.85rem; font-weight: 700; display: block; margin-bottom: 0.3rem; }
@@ -236,9 +236,11 @@
       .upload-submit { border: 0; border-radius: 0.55rem; background: var(--blue); color: white; font: inherit; font-weight: 700; padding: 0.7rem 1.2rem; cursor: pointer; }
       .upload-status { font-size: 0.85rem; margin-top: 0.7rem; min-height: 1.2em; }
 
-      .app__list-heading { color: white; text-shadow: 0 0.1rem 0.6rem rgba(0, 0, 0, 0.35); margin-bottom: 0.9rem; }
+      .app__list-header { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: 0.9rem; }
+      .app__list-heading { color: white; text-shadow: 0 0.1rem 0.6rem rgba(0, 0, 0, 0.35); margin: 0; }
+      .storage-stat { color: rgba(255, 255, 255, 0.85); font-size: 0.8rem; text-shadow: 0 0.1rem 0.5rem rgba(0, 0, 0, 0.35); }
 
-      .folder-section { padding: 1.25rem 1.5rem; margin-bottom: 1.25rem; }
+      .folder-section { padding: 0.9rem 1.1rem; margin-bottom: 1rem; }
       .folder-section__title { margin: 0 0 0.75rem; color: var(--blue); font-size: 1rem; letter-spacing: 0.01em; }
 
       details.folder { border-top: 1px solid rgba(16, 34, 59, 0.1); padding: 0.7rem 0; }
@@ -363,7 +365,10 @@
         </form>
       </div>
 
-      <h3 class="app__list-heading">Available exams</h3>
+      <div class="app__list-header">
+        <h3 class="app__list-heading">Available exams</h3>
+        <span class="storage-stat" id="storage-stat"></span>
+      </div>
       <div id="exam-tree"></div>
       </div>
     </section>
@@ -399,6 +404,8 @@
       const uploadForm = document.querySelector('#upload-form');
       const uploadStatus = document.querySelector('#upload-status');
       const examTree = document.querySelector('#exam-tree');
+      const storageStat = document.querySelector('#storage-stat');
+      const FREE_TIER_STORAGE_BYTES = 1024 * 1024 * 1024; // Supabase free tier storage quota
       const quarterSelect = document.querySelector('#exam-quarter');
       const trackWrap = document.querySelector('#exam-track-wrap');
       const trackSelect = document.querySelector('#exam-track');
@@ -452,6 +459,7 @@
         document.body.classList.add('app-open');
         appSection.scrollIntoView({ behavior: 'smooth' });
         await loadExams();
+        loadStorageStat();
       }
 
       function examRowHtml(exam) {
@@ -467,6 +475,23 @@
             </div>
           </li>
         `;
+      }
+
+      function formatMb(bytes) {
+        return (bytes / (1024 * 1024)).toFixed(1);
+      }
+
+      async function loadStorageStat() {
+        storageStat.textContent = 'Checking storage…';
+        const { data, error } = await sb.storage.from(BUCKET).list('', { limit: 1000 });
+        if (error || !data) {
+          storageStat.textContent = '';
+          return;
+        }
+        const totalBytes = data.reduce((sum, file) => sum + (file.metadata?.size || 0), 0);
+        const usedMb = formatMb(totalBytes);
+        const totalMb = formatMb(FREE_TIER_STORAGE_BYTES);
+        storageStat.textContent = `Storage: ${usedMb} MB of ~${totalMb} MB used`;
       }
 
       async function loadExams() {
@@ -525,6 +550,7 @@
             await sb.storage.from(BUCKET).remove([btn.dataset.path]);
             await sb.from('exams').delete().eq('id', btn.dataset.id);
             loadExams();
+            loadStorageStat();
           });
         });
       }
@@ -565,6 +591,7 @@
         uploadForm.reset();
         updateTrackVisibility();
         loadExams();
+        loadStorageStat();
       });
 
       function escapeHtml(str) {
