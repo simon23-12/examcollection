@@ -4,14 +4,22 @@
 -- 1. Table to store exam metadata
 create table if not exists public.exams (
   id uuid primary key default gen_random_uuid(),
-  title text not null,
+  title text,
   level text,
+  track text,
   file_path text not null,
   file_name text not null,
   uploaded_at timestamptz not null default now()
 );
 
+alter table public.exams add column if not exists track text;
+alter table public.exams alter column title drop not null;
+
 alter table public.exams enable row level security;
+
+-- RLS policies only take effect once the base privilege exists; the SQL
+-- editor runs as postgres (superuser) so this grant doesn't happen automatically.
+grant select, insert, delete on public.exams to authenticated;
 
 -- Only signed-in users (the shared teacher login) can read or write
 create policy "Authenticated read" on public.exams

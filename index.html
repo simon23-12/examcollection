@@ -154,6 +154,7 @@
       }
 
       body.app-open { overflow: auto; }
+      body.app-open .hero { display: none; }
 
       .login-form { display: flex; flex-direction: column; gap: 0.9rem; margin-top: 1.25rem; }
       .login-form label { font-size: 0.85rem; font-weight: 700; color: var(--ink); display: block; margin-bottom: 0.3rem; }
@@ -231,11 +232,33 @@
       .upload-card h3 { margin-top: 0; }
       .upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; margin-bottom: 1rem; }
       .upload-grid label { font-size: 0.85rem; font-weight: 700; display: block; margin-bottom: 0.3rem; }
-      .upload-grid input { width: 100%; border: 1px solid rgba(16, 34, 59, 0.2); border-radius: 0.5rem; padding: 0.55rem 0.7rem; font: inherit; }
+      .upload-grid input, .upload-grid select { width: 100%; border: 1px solid rgba(16, 34, 59, 0.2); border-radius: 0.5rem; padding: 0.55rem 0.7rem; font: inherit; background: white; }
       .upload-submit { border: 0; border-radius: 0.55rem; background: var(--blue); color: white; font: inherit; font-weight: 700; padding: 0.7rem 1.2rem; cursor: pointer; }
       .upload-status { font-size: 0.85rem; margin-top: 0.7rem; min-height: 1.2em; }
 
       .app__list-heading { color: white; text-shadow: 0 0.1rem 0.6rem rgba(0, 0, 0, 0.35); margin-bottom: 0.9rem; }
+
+      .folder-section { padding: 1.25rem 1.5rem; margin-bottom: 1.25rem; }
+      .folder-section__title { margin: 0 0 0.75rem; color: var(--blue); font-size: 1rem; letter-spacing: 0.01em; }
+
+      details.folder { border-top: 1px solid rgba(16, 34, 59, 0.1); padding: 0.7rem 0; }
+      details.folder:first-of-type { border-top: none; }
+      details.folder > summary {
+        cursor: pointer;
+        font-weight: 700;
+        list-style: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      details.folder > summary::-webkit-details-marker { display: none; }
+      details.folder > summary::before { content: '▸'; color: var(--orange); transition: transform 150ms ease; }
+      details.folder[open] > summary::before { transform: rotate(90deg); }
+
+      details.folder--nested { margin: 0.6rem 0 0 1.4rem; border-top: none; padding: 0.3rem 0; }
+      details.folder--nested > summary { font-weight: 600; font-size: 0.92rem; }
+
+      .exam-row__empty { padding: 0.6rem 0.25rem; color: #8a97a8; font-size: 0.85rem; }
 
       .exam-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; }
       .exam-row { display: flex; align-items: center; justify-content: space-between; padding: 0.8rem 0.25rem; border-bottom: 1px solid rgba(16, 34, 59, 0.1); }
@@ -316,13 +339,20 @@
         <form id="upload-form">
           <div class="upload-grid">
             <div>
-              <label for="exam-title">Title</label>
-              <input id="exam-title" type="text" required placeholder="e.g. Year 10 Mock 2026" />
+              <label for="exam-quarter">Quartal / topic</label>
+              <select id="exam-quarter" required></select>
             </div>
-            <div>
-              <label for="exam-level">Level / class</label>
-              <input id="exam-level" type="text" placeholder="e.g. 10a" />
+            <div id="exam-track-wrap" style="display: none;">
+              <label for="exam-track">Kurs</label>
+              <select id="exam-track">
+                <option value="GK">GK</option>
+                <option value="LK">LK</option>
+              </select>
             </div>
+          </div>
+          <div style="margin-bottom: 1rem;">
+            <label for="exam-title">Title (optional)</label>
+            <input id="exam-title" type="text" placeholder="e.g. Nachschreibtermin, 2026" />
           </div>
           <div style="margin-bottom: 1rem;">
             <label for="exam-file">File (doc, docx, mp3)</label>
@@ -334,9 +364,7 @@
       </div>
 
       <h3 class="app__list-heading">Available exams</h3>
-      <div class="glass-card" style="padding: 0.5rem 1rem;">
-        <ul class="exam-list" id="exam-list"></ul>
-      </div>
+      <div id="exam-tree"></div>
       </div>
     </section>
 
@@ -347,6 +375,20 @@
       const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
       const BUCKET = 'exams';
 
+      const CURRICULUM = [
+        { section: 'EF (Einführungsphase)', code: 'EF 1.1', topic: 'Finding my place in the world', exam: 'Klausur (Schreiben + Leseverstehen integriert)', hasTrack: false },
+        { section: 'EF (Einführungsphase)', code: 'EF 1.2', topic: 'My part in shaping a more sustainable world', exam: 'Mündliche Prüfung', hasTrack: false },
+        { section: 'EF (Einführungsphase)', code: 'EF 2.1', topic: 'Chances and challenges of diversity in our society', exam: 'Klausur (Schreiben + Leseverstehen, Sprachmittlung isoliert)', hasTrack: false },
+        { section: 'EF (Einführungsphase)', code: 'EF 2.2', topic: 'Exploring options and opportunities in the world of work', exam: 'Klausur (Schreiben + Leseverstehen, Hörverstehen isoliert)', hasTrack: false },
+        { section: 'Qualifikationsphase 1 (Q1)', code: 'Q1.1', topic: 'The UK – a United Kingdom?', exam: 'Klausur', hasTrack: true },
+        { section: 'Qualifikationsphase 1 (Q1)', code: 'Q1.1.2', topic: 'The USA – Still the Promised Land?', exam: 'Klausur', hasTrack: true },
+        { section: 'Qualifikationsphase 1 (Q1)', code: 'Q1.1.3', topic: 'Voices from the African continent – Focus on Nigeria', exam: 'Klausur', hasTrack: true },
+        { section: 'Qualifikationsphase 1 (Q1)', code: 'Q1.2.1', topic: 'Gender & Identity', exam: 'Klausur', hasTrack: true },
+        { section: 'Qualifikationsphase 2 (Q2)', code: 'Q2.1.2', topic: 'Visions of the future: ethical issues of scientific and technological progress', exam: 'Mündliche Prüfung', hasTrack: true },
+        { section: 'Qualifikationsphase 2 (Q2)', code: 'Q2.2.2', topic: 'Visions of the Future – Utopia or Dystopia', exam: 'Klausur', hasTrack: true },
+        { section: 'Qualifikationsphase 2 (Q2)', code: 'Q2.1-3', topic: 'Beyond the Nation – Europe and a Globalized World', exam: 'Vorabiturklausur', hasTrack: true },
+      ];
+
       const loginTrigger = document.querySelector('#login-trigger');
       const loginDialog = document.querySelector('#login-dialog');
       const loginForm = document.querySelector('#login-form');
@@ -356,7 +398,26 @@
       const logoutButton = document.querySelector('#logout-button');
       const uploadForm = document.querySelector('#upload-form');
       const uploadStatus = document.querySelector('#upload-status');
-      const examList = document.querySelector('#exam-list');
+      const examTree = document.querySelector('#exam-tree');
+      const quarterSelect = document.querySelector('#exam-quarter');
+      const trackWrap = document.querySelector('#exam-track-wrap');
+      const trackSelect = document.querySelector('#exam-track');
+
+      for (const q of CURRICULUM) {
+        const option = document.createElement('option');
+        option.value = q.code;
+        option.textContent = `${q.code} – ${q.topic}`;
+        quarterSelect.appendChild(option);
+      }
+
+      function updateTrackVisibility() {
+        const current = CURRICULUM.find((q) => q.code === quarterSelect.value);
+        const needsTrack = current ? current.hasTrack : false;
+        trackWrap.style.display = needsTrack ? '' : 'none';
+        trackSelect.required = needsTrack;
+      }
+      quarterSelect.addEventListener('change', updateTrackVisibility);
+      updateTrackVisibility();
 
       loginTrigger.addEventListener('click', () => {
         loginError.textContent = '';
@@ -393,41 +454,64 @@
         await loadExams();
       }
 
+      function examRowHtml(exam) {
+        return `
+          <li class="exam-row">
+            <div class="exam-row__meta">
+              <span class="exam-row__title">${escapeHtml(exam.title || exam.file_name)}</span>
+              <span class="exam-row__sub">${escapeHtml(exam.file_name)}</span>
+            </div>
+            <div class="exam-row__actions">
+              <a href="#" data-path="${exam.file_path}" class="download-link">Download</a>
+              <button type="button" data-id="${exam.id}" data-path="${exam.file_path}" class="delete-button">Delete</button>
+            </div>
+          </li>
+        `;
+      }
+
       async function loadExams() {
-        examList.innerHTML = '<li>Loading…</li>';
+        examTree.innerHTML = '<p>Loading…</p>';
         const { data, error } = await sb
           .from('exams')
           .select('*')
           .order('uploaded_at', { ascending: false });
 
         if (error) {
-          examList.innerHTML = '<li>Could not load exams.</li>';
+          examTree.innerHTML = '<p>Could not load exams.</p>';
           return;
         }
 
-        if (!data.length) {
-          examList.innerHTML = '<li>No exams uploaded yet.</li>';
-          return;
+        const bySection = new Map();
+        for (const q of CURRICULUM) {
+          if (!bySection.has(q.section)) bySection.set(q.section, []);
+          bySection.get(q.section).push(q);
         }
 
-        examList.innerHTML = '';
-        for (const exam of data) {
-          const li = document.createElement('li');
-          li.className = 'exam-row';
-          li.innerHTML = `
-            <div class="exam-row__meta">
-              <span class="exam-row__title">${escapeHtml(exam.title)}</span>
-              <span class="exam-row__sub">${escapeHtml(exam.level || '')} · ${escapeHtml(exam.file_name)}</span>
-            </div>
-            <div class="exam-row__actions">
-              <a href="#" data-path="${exam.file_path}" class="download-link">Download</a>
-              <button type="button" data-id="${exam.id}" data-path="${exam.file_path}" class="delete-button">Delete</button>
-            </div>
-          `;
-          examList.appendChild(li);
+        let html = '';
+        for (const [section, quarters] of bySection) {
+          html += `<div class="glass-card folder-section"><h4 class="folder-section__title">${escapeHtml(section)}</h4>`;
+          for (const q of quarters) {
+            const examsForQuarter = data.filter((e) => e.level === q.code);
+            html += `<details class="folder"><summary>${escapeHtml(q.code)} – ${escapeHtml(q.topic)}</summary>`;
+            if (q.hasTrack) {
+              for (const track of ['GK', 'LK']) {
+                const trackExams = examsForQuarter.filter((e) => e.track === track);
+                html += `<details class="folder folder--nested"><summary>${track}</summary><ul class="exam-list">`;
+                html += trackExams.length ? trackExams.map(examRowHtml).join('') : '<li class="exam-row__empty">No files yet.</li>';
+                html += `</ul></details>`;
+              }
+            } else {
+              html += `<ul class="exam-list">`;
+              html += examsForQuarter.length ? examsForQuarter.map(examRowHtml).join('') : '<li class="exam-row__empty">No files yet.</li>';
+              html += `</ul>`;
+            }
+            html += `</details>`;
+          }
+          html += `</div>`;
         }
+        examTree.innerHTML = html;
 
-        examList.querySelectorAll('.download-link').forEach((a) => {
+        examTree.querySelectorAll('.download-link').forEach((a) => {
           a.addEventListener('click', async (e) => {
             e.preventDefault();
             const { data, error } = await sb.storage.from(BUCKET).createSignedUrl(a.dataset.path, 60);
@@ -435,7 +519,7 @@
           });
         });
 
-        examList.querySelectorAll('.delete-button').forEach((btn) => {
+        examTree.querySelectorAll('.delete-button').forEach((btn) => {
           btn.addEventListener('click', async () => {
             if (!confirm('Delete this exam for everyone?')) return;
             await sb.storage.from(BUCKET).remove([btn.dataset.path]);
@@ -448,7 +532,9 @@
       uploadForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const title = document.querySelector('#exam-title').value;
-        const level = document.querySelector('#exam-level').value;
+        const level = quarterSelect.value;
+        const current = CURRICULUM.find((q) => q.code === level);
+        const track = current && current.hasTrack ? trackSelect.value : null;
         const fileInput = document.querySelector('#exam-file');
         const file = fileInput.files[0];
         if (!file) return;
@@ -465,6 +551,7 @@
         const { error: insertError } = await sb.from('exams').insert({
           title,
           level,
+          track,
           file_path: path,
           file_name: file.name,
         });
@@ -476,6 +563,7 @@
 
         uploadStatus.textContent = 'Uploaded.';
         uploadForm.reset();
+        updateTrackVisibility();
         loadExams();
       });
 
