@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" />
+    <title>English Exam Collection | LMG</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #10223b;
+        --blue: #0966ad;
+        --orange: #ee9400;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        overflow: hidden;
+        font-family: "Avenir Next", Avenir, "Helvetica Neue", Arial, sans-serif;
+        color: var(--ink);
+      }
+
+      .hero {
+        isolation: isolate;
+        position: relative;
+        display: grid;
+        min-height: 100vh;
+        place-items: center;
+        overflow: hidden;
+        background: #193d5d;
+      }
+
+      .hero__video,
+      .hero__shade,
+      .hero__fade {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      .hero__video {
+        z-index: -3;
+        object-fit: cover;
+        object-position: center;
+      }
+
+      .hero__shade {
+        z-index: -2;
+        background: linear-gradient(110deg, rgba(6, 30, 53, 0.47), rgba(6, 30, 53, 0.12) 57%, rgba(6, 30, 53, 0.34));
+      }
+
+      /* Soft white light at both upper corners keeps the navigation legible. */
+      .hero__fade {
+        z-index: -1;
+        pointer-events: none;
+        background:
+          radial-gradient(circle 24rem at 0 0, #fff 0%, #fff 48%, rgba(255, 255, 255, 0.97) 55%, rgba(255, 255, 255, 0.83) 67%, rgba(255, 255, 255, 0.55) 79%, rgba(255, 255, 255, 0.22) 90%, rgba(255, 255, 255, 0) 100%),
+          radial-gradient(circle 24rem at 100% 0, #fff 0%, #fff 48%, rgba(255, 255, 255, 0.97) 55%, rgba(255, 255, 255, 0.83) 67%, rgba(255, 255, 255, 0.55) 79%, rgba(255, 255, 255, 0.22) 90%, rgba(255, 255, 255, 0) 100%);
+      }
+
+      .nav {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 1;
+        display: flex;
+        width: 100%;
+        align-items: flex-start;
+        justify-content: space-between;
+        padding: clamp(0.8rem, 1.8vw, 1.5rem) clamp(0.9rem, 2.2vw, 2rem);
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: clamp(0.55rem, 1.3vw, 1.1rem);
+        text-decoration: none;
+      }
+
+      .brand img {
+        width: clamp(3.75rem, 6vw, 5.25rem);
+        height: auto;
+      }
+
+      .brand__title {
+        margin: 0;
+        color: var(--ink);
+        font-size: clamp(1.05rem, 2.1vw, 1.75rem);
+        font-weight: 800;
+        letter-spacing: -0.045em;
+        line-height: 1;
+        text-shadow: 0 0.1rem 0.75rem rgba(255, 255, 255, 0.8);
+      }
+
+      .brand__title-accent {
+        color: var(--orange);
+      }
+
+      .login-button {
+        border: 1px solid rgba(16, 34, 59, 0.17);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.86);
+        box-shadow: 0 0.45rem 1.3rem rgba(16, 34, 59, 0.12);
+        color: var(--ink);
+        cursor: pointer;
+        font: inherit;
+        font-size: 0.93rem;
+        font-weight: 700;
+        letter-spacing: 0.025em;
+        padding: 0.78rem 1.35rem;
+        transition: background 180ms ease, color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+      }
+
+      .login-button:hover,
+      .login-button:focus-visible {
+        background: var(--blue);
+        box-shadow: 0 0.7rem 1.6rem rgba(9, 102, 173, 0.28);
+        color: white;
+        outline: none;
+        transform: translateY(-2px);
+      }
+
+      dialog {
+        width: min(92vw, 25rem);
+        border: 0;
+        border-radius: 1.25rem;
+        box-shadow: 0 1.5rem 4.5rem rgba(7, 24, 43, 0.28);
+        color: var(--ink);
+        padding: 2rem;
+      }
+
+      dialog::backdrop { background: rgba(4, 20, 37, 0.58); }
+      dialog h2 { margin: 0; font-size: 1.5rem; }
+      dialog p { color: #536375; line-height: 1.5; }
+      .dialog-actions { display: flex; justify-content: flex-end; margin-top: 1.5rem; }
+      .dialog-actions button { border: 0; border-radius: 0.55rem; background: var(--blue); color: white; cursor: pointer; font: inherit; font-weight: 700; padding: 0.65rem 1rem; }
+
+      @media (max-width: 450px) {
+        .nav { padding: 0.7rem; }
+        .brand img { width: 3.7rem; }
+        .brand { gap: 0.45rem; }
+        .brand__title { font-size: 0.9rem; }
+        .login-button { font-size: 0.82rem; padding: 0.65rem 1rem; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .hero__video { display: none; }
+        .hero { background: linear-gradient(135deg, #163f63, #0c6fae); }
+        * { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="hero">
+      <video class="hero__video" autoplay muted loop playsinline aria-hidden="true">
+        <source src="2880734-hd_1920_1080_24fps(1).mp4" type="video/mp4" />
+      </video>
+      <div class="hero__shade"></div>
+      <div class="hero__fade"></div>
+
+      <nav class="nav" aria-label="Main navigation">
+        <a class="brand" href="/" aria-label="LMG home">
+          <img src="schoollogo.png" alt="LMG school logo" />
+          <h1 class="brand__title"><span class="brand__title-accent">English</span> Exam Collection</h1>
+        </a>
+        <button class="login-button" type="button" id="login-trigger">Log in</button>
+      </nav>
+    </main>
+
+    <dialog id="login-dialog" aria-labelledby="login-title">
+      <h2 id="login-title">Welcome back</h2>
+      <p>The sign-in area will be available here soon.</p>
+      <form method="dialog" class="dialog-actions"><button>Close</button></form>
+    </dialog>
+
+    <script>
+      const loginTrigger = document.querySelector('#login-trigger');
+      const loginDialog = document.querySelector('#login-dialog');
+      loginTrigger.addEventListener('click', () => loginDialog.showModal());
+    </script>
+  </body>
+</html>
