@@ -152,6 +152,111 @@
         .hero { background: linear-gradient(135deg, #163f63, #0c6fae); }
         * { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
       }
+
+      body.app-open { overflow: auto; }
+
+      .login-form { display: flex; flex-direction: column; gap: 0.9rem; margin-top: 1.25rem; }
+      .login-form label { font-size: 0.85rem; font-weight: 700; color: var(--ink); display: block; margin-bottom: 0.3rem; }
+      .login-form input {
+        width: 100%;
+        border: 1px solid rgba(16, 34, 59, 0.2);
+        border-radius: 0.55rem;
+        padding: 0.6rem 0.75rem;
+        font: inherit;
+      }
+      .login-error { color: #b3261e; font-size: 0.85rem; min-height: 1.2em; margin: 0; }
+      .dialog-actions { gap: 0.6rem; }
+      .dialog-actions button[value="cancel"] { background: transparent; color: var(--ink); border: 1px solid rgba(16, 34, 59, 0.2); }
+
+      .app-section { display: none; position: relative; isolation: isolate; min-height: 100vh; }
+      .app-section.open { display: block; }
+
+      .app__video, .app__shade {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+      .app__video { z-index: -3; object-fit: cover; object-position: center; }
+      .app__shade {
+        z-index: -2;
+        background: linear-gradient(110deg, rgba(6, 30, 53, 0.6), rgba(6, 30, 53, 0.3) 57%, rgba(6, 30, 53, 0.5));
+      }
+
+      .app__nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 2;
+        display: flex;
+        width: 100%;
+        align-items: center;
+        justify-content: space-between;
+        padding: clamp(0.8rem, 1.8vw, 1.5rem) clamp(0.9rem, 2.2vw, 2rem);
+        background: rgba(16, 34, 59, 0.35);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+      }
+      .app__nav .brand__title { color: white; text-shadow: none; }
+
+      .logout-button {
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        background: rgba(255, 255, 255, 0.12);
+        color: white;
+        border-radius: 999px;
+        padding: 0.55rem 1.1rem;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 180ms ease;
+      }
+      .logout-button:hover { background: rgba(255, 255, 255, 0.24); }
+
+      .app__content {
+        position: relative;
+        z-index: 1;
+        max-width: 52rem;
+        margin: 0 auto;
+        padding: calc(clamp(0.8rem, 1.8vw, 1.5rem) * 2 + 4.5rem) 1.5rem 4rem;
+      }
+
+      .glass-card {
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(6px);
+        border-radius: 1.1rem;
+        box-shadow: 0 1.5rem 4rem rgba(6, 20, 40, 0.35);
+      }
+
+      .upload-card { padding: 1.5rem; margin-bottom: 2rem; }
+      .upload-card h3 { margin-top: 0; }
+      .upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; margin-bottom: 1rem; }
+      .upload-grid label { font-size: 0.85rem; font-weight: 700; display: block; margin-bottom: 0.3rem; }
+      .upload-grid input { width: 100%; border: 1px solid rgba(16, 34, 59, 0.2); border-radius: 0.5rem; padding: 0.55rem 0.7rem; font: inherit; }
+      .upload-submit { border: 0; border-radius: 0.55rem; background: var(--blue); color: white; font: inherit; font-weight: 700; padding: 0.7rem 1.2rem; cursor: pointer; }
+      .upload-status { font-size: 0.85rem; margin-top: 0.7rem; min-height: 1.2em; }
+
+      .app__list-heading { color: white; text-shadow: 0 0.1rem 0.6rem rgba(0, 0, 0, 0.35); margin-bottom: 0.9rem; }
+
+      .exam-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; }
+      .exam-row { display: flex; align-items: center; justify-content: space-between; padding: 0.8rem 0.25rem; border-bottom: 1px solid rgba(16, 34, 59, 0.1); }
+      .exam-row:last-child { border-bottom: none; }
+      .exam-row__meta { display: flex; flex-direction: column; }
+      .exam-row__title { font-weight: 700; }
+      .exam-row__sub { font-size: 0.8rem; color: #607085; }
+      .exam-row__actions { display: flex; gap: 0.5rem; }
+      .exam-row__actions a, .exam-row__actions button {
+        border: 1px solid rgba(16, 34, 59, 0.2); background: white; border-radius: 999px;
+        padding: 0.4rem 0.85rem; font: inherit; font-size: 0.8rem; font-weight: 700; cursor: pointer; text-decoration: none; color: var(--ink);
+      }
+
+      @media (max-width: 550px) {
+        .upload-grid { grid-template-columns: 1fr; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .app__video { display: none; }
+        .app-section { background: linear-gradient(135deg, #163f63, #0c6fae); }
+      }
     </style>
   </head>
   <body>
@@ -172,15 +277,218 @@
     </main>
 
     <dialog id="login-dialog" aria-labelledby="login-title">
-      <h2 id="login-title">Welcome back</h2>
-      <p>The sign-in area will be available here soon.</p>
-      <form method="dialog" class="dialog-actions"><button>Close</button></form>
+      <h2 id="login-title">Teacher login</h2>
+      <p>Use the shared exam-collection login shared with English department staff.</p>
+      <form id="login-form" class="login-form">
+        <div>
+          <label for="login-email">Email</label>
+          <input id="login-email" type="email" required autocomplete="username" />
+        </div>
+        <div>
+          <label for="login-password">Password</label>
+          <input id="login-password" type="password" required autocomplete="current-password" />
+        </div>
+        <p class="login-error" id="login-error"></p>
+        <div class="dialog-actions">
+          <button type="button" value="cancel" id="login-cancel">Cancel</button>
+          <button type="submit">Log in</button>
+        </div>
+      </form>
     </dialog>
 
+    <section class="app-section" id="app-section">
+      <video class="app__video" autoplay muted loop playsinline aria-hidden="true">
+        <source src="19896618-uhd-3840-2160-24fps.mp4" type="video/mp4" />
+      </video>
+      <div class="app__shade"></div>
+
+      <nav class="app__nav" aria-label="App navigation">
+        <a class="brand" href="/" aria-label="LMG home">
+          <img src="schoollogo.png" alt="LMG school logo" />
+          <h1 class="brand__title"><span class="brand__title-accent">English</span> Exam Collection</h1>
+        </a>
+        <button class="logout-button" id="logout-button">Log out</button>
+      </nav>
+
+      <div class="app__content">
+      <div class="upload-card glass-card">
+        <h3>Upload an exam</h3>
+        <form id="upload-form">
+          <div class="upload-grid">
+            <div>
+              <label for="exam-title">Title</label>
+              <input id="exam-title" type="text" required placeholder="e.g. Year 10 Mock 2026" />
+            </div>
+            <div>
+              <label for="exam-level">Level / class</label>
+              <input id="exam-level" type="text" placeholder="e.g. 10a" />
+            </div>
+          </div>
+          <div style="margin-bottom: 1rem;">
+            <label for="exam-file">File (doc, docx, mp3)</label>
+            <input id="exam-file" type="file" required accept=".doc,.docx,.mp3" />
+          </div>
+          <button class="upload-submit" type="submit">Upload</button>
+          <p class="upload-status" id="upload-status"></p>
+        </form>
+      </div>
+
+      <h3 class="app__list-heading">Available exams</h3>
+      <div class="glass-card" style="padding: 0.5rem 1rem;">
+        <ul class="exam-list" id="exam-list"></ul>
+      </div>
+      </div>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+      const SUPABASE_URL = 'https://lnmncvmxrbboyppfxcih.supabase.co';
+      const SUPABASE_KEY = 'sb_publishable_ekLCvS9EN6V1xN01qg9vKw_fbUKUq8M';
+      const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      const BUCKET = 'exams';
+
       const loginTrigger = document.querySelector('#login-trigger');
       const loginDialog = document.querySelector('#login-dialog');
-      loginTrigger.addEventListener('click', () => loginDialog.showModal());
+      const loginForm = document.querySelector('#login-form');
+      const loginError = document.querySelector('#login-error');
+      const loginCancel = document.querySelector('#login-cancel');
+      const appSection = document.querySelector('#app-section');
+      const logoutButton = document.querySelector('#logout-button');
+      const uploadForm = document.querySelector('#upload-form');
+      const uploadStatus = document.querySelector('#upload-status');
+      const examList = document.querySelector('#exam-list');
+
+      loginTrigger.addEventListener('click', () => {
+        loginError.textContent = '';
+        loginDialog.showModal();
+      });
+
+      loginCancel.addEventListener('click', () => loginDialog.close());
+
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        loginError.textContent = '';
+        const email = document.querySelector('#login-email').value;
+        const password = document.querySelector('#login-password').value;
+        const { error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) {
+          loginError.textContent = 'Login failed. Check email and password.';
+          return;
+        }
+        loginForm.reset();
+        loginDialog.close();
+        showApp();
+      });
+
+      logoutButton.addEventListener('click', async () => {
+        await sb.auth.signOut();
+        appSection.classList.remove('open');
+        document.body.classList.remove('app-open');
+      });
+
+      async function showApp() {
+        appSection.classList.add('open');
+        document.body.classList.add('app-open');
+        appSection.scrollIntoView({ behavior: 'smooth' });
+        await loadExams();
+      }
+
+      async function loadExams() {
+        examList.innerHTML = '<li>Loading…</li>';
+        const { data, error } = await sb
+          .from('exams')
+          .select('*')
+          .order('uploaded_at', { ascending: false });
+
+        if (error) {
+          examList.innerHTML = '<li>Could not load exams.</li>';
+          return;
+        }
+
+        if (!data.length) {
+          examList.innerHTML = '<li>No exams uploaded yet.</li>';
+          return;
+        }
+
+        examList.innerHTML = '';
+        for (const exam of data) {
+          const li = document.createElement('li');
+          li.className = 'exam-row';
+          li.innerHTML = `
+            <div class="exam-row__meta">
+              <span class="exam-row__title">${escapeHtml(exam.title)}</span>
+              <span class="exam-row__sub">${escapeHtml(exam.level || '')} · ${escapeHtml(exam.file_name)}</span>
+            </div>
+            <div class="exam-row__actions">
+              <a href="#" data-path="${exam.file_path}" class="download-link">Download</a>
+              <button type="button" data-id="${exam.id}" data-path="${exam.file_path}" class="delete-button">Delete</button>
+            </div>
+          `;
+          examList.appendChild(li);
+        }
+
+        examList.querySelectorAll('.download-link').forEach((a) => {
+          a.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const { data, error } = await sb.storage.from(BUCKET).createSignedUrl(a.dataset.path, 60);
+            if (!error && data) window.open(data.signedUrl, '_blank');
+          });
+        });
+
+        examList.querySelectorAll('.delete-button').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            if (!confirm('Delete this exam for everyone?')) return;
+            await sb.storage.from(BUCKET).remove([btn.dataset.path]);
+            await sb.from('exams').delete().eq('id', btn.dataset.id);
+            loadExams();
+          });
+        });
+      }
+
+      uploadForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const title = document.querySelector('#exam-title').value;
+        const level = document.querySelector('#exam-level').value;
+        const fileInput = document.querySelector('#exam-file');
+        const file = fileInput.files[0];
+        if (!file) return;
+
+        uploadStatus.textContent = 'Uploading…';
+        const path = `${crypto.randomUUID()}-${file.name}`;
+
+        const { error: uploadError } = await sb.storage.from(BUCKET).upload(path, file);
+        if (uploadError) {
+          uploadStatus.textContent = 'Upload failed: ' + uploadError.message;
+          return;
+        }
+
+        const { error: insertError } = await sb.from('exams').insert({
+          title,
+          level,
+          file_path: path,
+          file_name: file.name,
+        });
+
+        if (insertError) {
+          uploadStatus.textContent = 'Saved file but failed to record it: ' + insertError.message;
+          return;
+        }
+
+        uploadStatus.textContent = 'Uploaded.';
+        uploadForm.reset();
+        loadExams();
+      });
+
+      function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      }
+
+      // Restore session on page load (e.g. after refresh)
+      sb.auth.getSession().then(({ data }) => {
+        if (data.session) showApp();
+      });
     </script>
   </body>
 </html>
